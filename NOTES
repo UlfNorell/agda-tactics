@@ -1,6 +1,13 @@
 
 TODO
 
-  - nicer error when it fails to prove stuff
-  - get rid of rings and specialize to Nat
   - code cleanup
+
+NEW FEATURES
+
+  - simplification
+    generate a function NewGoal -> OldGoal
+
+  - using assumptions
+    probably too hard
+
