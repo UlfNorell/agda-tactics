@@ -3,17 +3,10 @@ module RingSolver.NF where
 
 open import Prelude
 open import RingSolver.Exp
-open import Ring as R
+open import RingSolver.Bag
 
 Term = List Var
 NF   = List (Nat × Term)
-
-merge : ∀ {A : Set} {{OrdA : Ord A}} → List A → List A → List A
-merge [] ys = ys
-merge xs [] = xs
-merge (x ∷ xs) (y ∷ ys) =
-  if x < y then x ∷ merge xs (y ∷ ys)
-           else y ∷ merge (x ∷ xs) ys
 
 OrdTerm : Ord Term
 OrdTerm = OrdList
@@ -22,10 +15,17 @@ OrdKTerm : Ord (Nat × Term)
 OrdKTerm = OrdPair
 
 _+nf_ : NF → NF → NF
-_+nf_ a b = merge a b
+_+nf_ a b = union a b
+
+merge : Term → Term → Term
+merge x [] = x
+merge [] y = y
+merge (i ∷ x) (j ∷ y) =
+  if lessNat i j then i ∷ merge x (j ∷ y)
+                 else j ∷ merge (i ∷ x) y
 
 mulTerm : Nat × Term → Nat × Term → Nat × Term
-mulTerm (a , x) (b , y) = a * b , x ++ y
+mulTerm (a , x) (b , y) = a * b , merge x y
 
 _*nf_ : NF → NF → NF
 []      *nf b = []
@@ -38,12 +38,14 @@ norm ⟨1⟩ = [ 1 , [] ]
 norm (e ⟨+⟩ e₁) = norm e +nf norm e₁
 norm (e ⟨*⟩ e₁) = norm e *nf norm e₁
 
-module _ {A : Set} {{RingA : Ring A}} where
-  open Ring RingA
+product : List Nat → Nat
+product = foldr _*_ 1
 
-  ⟦_⟧t : Nat × Term → Env A → A
-  ⟦ k , v ⟧t ρ = k #* #prod (map ρ v)
+sum : List Nat → Nat
+sum = foldr _+_ 0
 
-  ⟦_⟧n : NF → Env A → A
-  ⟦ nf ⟧n ρ = #sum (map (flip ⟦_⟧t ρ) nf)
+⟦_⟧t : Nat × Term → Env → Nat
+⟦ k , v ⟧t ρ = k * product (map ρ v)
 
+⟦_⟧n : NF → Env → Nat
+⟦ nf ⟧n ρ = sum (map (flip ⟦_⟧t ρ) nf)

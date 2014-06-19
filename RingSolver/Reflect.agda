@@ -3,11 +3,11 @@ module RingSolver.Reflect where
 
 open import Prelude
 open import Data.Reflect
+open import Data.Reflect.Quote
 open import Control.Monad.State
 
 open import RingSolver.Exp
 open import RingSolver
-open import Ring as R
 
 natToExp : Nat → Exp
 natToExp zero    = ⟨0⟩
@@ -31,8 +31,7 @@ pattern _`≡_ x y = def (quote _≡_) (_ ∷ _ ∷ arg _ x ∷ arg _ y ∷ [])
 
 pattern _`+_ x y = def (quote _+_) (arg _ x ∷ arg _ y ∷ [])
 pattern _`*_ x y = def (quote _*_) (arg _ x ∷ arg _ y ∷ [])
-pattern `suc n   = con (quote Nat.suc) (arg _ n ∷ [])
-pattern `0       = con (quote Nat.zero) []
+pattern `0       = `zero
 pattern `1       = `suc `0
 
 fresh : Term → R Exp
@@ -58,7 +57,7 @@ termToExp (lhs `≡ rhs) =
   runStateT (_,_ <$> termToExpR lhs <*> termToExpR rhs) (0 , [])
 termToExp _ = nothing
 
-buildEnv : List Nat → Env Nat
+buildEnv : List Nat → Env
 buildEnv [] i = 0
 buildEnv (x ∷ xs) zero = x
 buildEnv (x ∷ xs) (suc i) = buildEnv xs i
@@ -79,23 +78,19 @@ data ProofError {a} : Set a → Set (lsuc a) where
 qProofError : Term → Term
 qProofError v = con (quote bad-goal) (defaultArg v ∷ [])
 
-qNat = quoteTerm Nat
-qRingNat = quoteTerm RingNat
-
 implicitArg instanceArg : ∀ {A} → A → Arg A
 implicitArg = arg (arg-info hidden relevant)
 instanceArg = arg (arg-info instance relevant)
 
-quoteNat : Nat → Term
-quoteNat zero    = `0
-quoteNat (suc n) = con (quote Nat.suc) (defaultArg (quoteNat n) ∷ [])
-
-quoteExp : Exp → Term
-quoteExp (var x) = con (quote Exp.var) (defaultArg (quoteNat x) ∷ [])
-quoteExp ⟨0⟩ = con (quote ⟨0⟩) []
-quoteExp ⟨1⟩ = con (quote ⟨1⟩) []
-quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
-quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
+QuotableExp : Quotable Exp
+QuotableExp = record { ` = quoteExp }
+  where
+    quoteExp : Exp → Term
+    quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
+    quoteExp ⟨0⟩ = con (quote ⟨0⟩) []
+    quoteExp ⟨1⟩ = con (quote ⟨1⟩) []
+    quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
+    quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
 
 stripImplicitArg : Arg Term → List (Arg Term)
 stripImplicitArgs : List (Arg Term) → List (Arg Term)
@@ -121,16 +116,26 @@ stripImplicitArg (arg (arg-info visible r) x) = arg (arg-info visible r) (stripI
 stripImplicitArg (arg (arg-info hidden r) x) = []
 stripImplicitArg (arg (arg-info instance r) x) = []
 
+ValidProof : {A : Set} {x : Maybe A} → Set
+ValidProof {x = x} = IsJust x
+
+getProof : {u v : Nat} (prf : Maybe (u ≡ v)) → ValidProof {x = prf} → u ≡ v
+getProof (just eq) _ = eq
+getProof nothing ()
+
+cantProve : Set → ⊤ {lzero}
+cantProve _ = _
+
 prove : Term → Term
 prove t =
   case termToExp t of
   λ { nothing → qProofError (stripImplicit t)
     ; (just ((e₁ , e₂) , Γ)) →
-      def (quote fromJust) $
-        defaultArg
-          (def (quote proof) ( defaultArg (quoteExp e₁)
-                             ∷ defaultArg (quoteExp e₂)
-                             ∷ defaultArg (quotedEnv Γ)
-                             ∷ []))
+      def (quote getProof)
+        $ vArg (def (quote proof) ( vArg (` e₁)
+                                  ∷ vArg (` e₂)
+                                  ∷ vArg (quotedEnv Γ)
+                                  ∷ []))
+        ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
         ∷ []
     }
