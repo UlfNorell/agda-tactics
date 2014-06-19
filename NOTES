@@ -1,0 +1,6 @@
+
+TODO
+
+  - nicer error when it fails to prove stuff
+  - get rid of rings and specialize to Nat
+  - code cleanup
