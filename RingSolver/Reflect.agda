@@ -27,7 +27,9 @@ FunctorR = FunctorStateT
 fail : ∀ {A} → R A
 fail = lift nothing
 
-pattern _`≡_ x y = def (quote _≡_) (_ ∷ _ ∷ arg _ x ∷ arg _ y ∷ [])
+pattern `Nat = def (quote Nat) []
+
+pattern _`≡_ x y = def (quote _≡_) (_ ∷ arg _ `Nat ∷ arg _ x ∷ arg _ y ∷ [])
 
 pattern _`+_ x y = def (quote _+_) (arg _ x ∷ arg _ y ∷ [])
 pattern _`*_ x y = def (quote _*_) (arg _ x ∷ arg _ y ∷ [])
