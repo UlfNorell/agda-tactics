@@ -24,3 +24,6 @@ cong₂ f refl refl = refl
 
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
+
+_≡tr_ : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+refl ≡tr p = p
