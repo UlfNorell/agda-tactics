@@ -3,11 +3,27 @@ TODO
 
   - code cleanup
 
+  - restructure so I can use simplification soundness proof (which uses prove
+    tactic)
+
 NEW FEATURES
 
-  - simplification
-    generate a function NewGoal -> OldGoal
-
   - using assumptions
-    probably too hard
+    could work if they have the form "atom ≡ exp"
+
+    although in that case it might be nicer with a general rewrite tactic
+
+  - rewrite tactic
+
+    How would it get the type of the equation to rewrite by? Could do an
+    identity function trick and grab the hidden argument.
+
+  - cong tactic
+
+  - Look at "Proving Equalities in a Commutative Ring Done Right in Coq"
+    by Grégoire and Mahboubi.
+
+  - Think about regeneralize to other types.
+
+  - Induction tactic.
 

@@ -10,10 +10,6 @@ open import Control.Monad.State
 open import RingSolver.Exp
 open import RingSolver
 
-natToExp : Nat → Exp
-natToExp zero    = ⟨0⟩
-natToExp (suc n) = ⟨1⟩ ⟨+⟩ natToExp n
-
 R = StateT (Nat × List (Term × Nat)) Maybe
 
 MonadR : Monad R
@@ -42,12 +38,16 @@ fresh t =
   get >>= uncurry′ λ i Γ →
    var i <$ put (suc i , (t , i) ∷ Γ)
 
+⟨suc⟩ : Exp → Exp
+⟨suc⟩ (lit n) = lit (suc n)
+⟨suc⟩ (lit n ⟨+⟩ e) = lit (suc n) ⟨+⟩ e
+⟨suc⟩ e = lit 1 ⟨+⟩ e
+
 termToExpR : Term → R Exp
 termToExpR (a `+ b) = _⟨+⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR (a `* b) = _⟨*⟩_ <$> termToExpR a <*> termToExpR b
-termToExpR `0       = pure ⟨0⟩
-termToExpR `1       = pure ⟨1⟩
-termToExpR (`suc a) = _⟨+⟩_ ⟨1⟩ <$> termToExpR a
+termToExpR `0       = pure (lit 0)
+termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
 termToExpR unknown  = fail
 termToExpR t =
   gets (flip lookup t ∘ snd) >>=
@@ -68,13 +68,6 @@ buildEnv (x ∷ xs) (suc i) = buildEnv xs i
 defaultArg : Term → Arg Term
 defaultArg = arg (arg-info visible relevant)
 
-quoteList : List Term → Term
-quoteList [] = con (quote List.[]) []
-quoteList (t ∷ ts) = con (quote List._∷_) (defaultArg t ∷ defaultArg (quoteList ts) ∷ [])
-
-quotedEnv : List Term → Term
-quotedEnv ts = def (quote buildEnv) $ defaultArg (quoteList ts) ∷ []
-
 data ProofError {a} : Set a → Set (lsuc a) where
   bad-goal : ∀ g → ProofError g
 
@@ -90,8 +83,7 @@ QuotableExp = record { ` = quoteExp }
   where
     quoteExp : Exp → Term
     quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
-    quoteExp ⟨0⟩ = con (quote ⟨0⟩) []
-    quoteExp ⟨1⟩ = con (quote ⟨1⟩) []
+    quoteExp (lit n) = con (quote Exp.lit) (vArg (` n) ∷ [])
     quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
     quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
 
@@ -119,10 +111,17 @@ stripImplicitArg (arg (arg-info visible r) x) = arg (arg-info visible r) (stripI
 stripImplicitArg (arg (arg-info hidden r) x) = []
 stripImplicitArg (arg (arg-info instance r) x) = []
 
-ValidProof : {A : Set} {x : Maybe A} → Set
-ValidProof {x = x} = IsJust x
+quoteList : List Term → Term
+quoteList [] = con (quote List.[]) []
+quoteList (t ∷ ts) = con (quote List._∷_) (defaultArg t ∷ defaultArg (quoteList ts) ∷ [])
 
-getProof : {u v : Nat} (prf : Maybe (u ≡ v)) → ValidProof {x = prf} → u ≡ v
+quotedEnv : List Term → Term
+quotedEnv ts = def (quote buildEnv) $ defaultArg (quoteList $ map stripImplicit ts) ∷ []
+
+QED : {A : Set} {x : Maybe A} → Set
+QED {x = x} = IsJust x
+
+getProof : {u v : Nat} (prf : Maybe (u ≡ v)) → QED {x = prf} → u ≡ v
 getProof (just eq) _ = eq
 getProof nothing ()
 
@@ -149,5 +148,23 @@ prove t =
                                     ∷ []))
           ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
           ∷ [])
+        ∷ []
+    }
+
+simplify : Term → Term
+simplify t =
+  case termToExp t of
+  λ { nothing →
+      def (quote getProof)
+        $ vArg (con (quote nothing) [])
+        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
+        ∷ []
+    ; (just ((e₁ , e₂) , Γ)) →
+      def (quote _∘_)
+        $ vArg (def (quote safeEqual) [])
+        ∷ vArg (def (quote simpl) ( vArg (` e₁)
+                                  ∷ vArg (` e₂)
+                                  ∷ vArg (quotedEnv Γ)
+                                  ∷ []))
         ∷ []
     }

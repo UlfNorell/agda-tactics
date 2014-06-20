@@ -26,14 +26,14 @@ test₁ n m = quoteGoal g in unquote (prove g)
 test₂ : ∀ x y → (x + y) ^ 3 ≡ x ^ 3 + 3 * x ^ 2 * y + 3 * x * y ^ 2 + y ^ 3
 test₂ x y = quoteGoal g in unquote (prove g)
 
-test₃ : ∀ x y → (x + y) ^ 6 ≡ (x + y) * (x + y) ^ 5
+test₃ : ∀ x y → (x + y) ^ 9 ≡ (x + y) * (x + y) ^ 8
 test₃ x y = quoteGoal g in unquote (prove g)
 
 -- test₄ : ∀ x y → (x + y) ^ 16 ≡ (x + y) * (x + y) ^ 15
 -- test₄ x y = quoteGoal g in unquote (prove g)
 
--- Need quoted literals to do this efficiently.
--- test₅ : ∀ x → 400 * x + 2 ≡ 2 * (x * 200 + 1)
+-- Need quoted literals to do this really efficiently.
+-- test₅ : ∀ x → x * 400 + 2 ≡ 2 * (x * 200 + 1)
 -- test₅ x = quoteGoal g in unquote (prove g)
 
 -- foo : (x y : Bool) → x ≡ (y && false)
@@ -41,5 +41,3 @@ test₃ x y = quoteGoal g in unquote (prove g)
 
 -- bad : ∀ x y → x + y ≡ x * 2
 -- bad x y = quoteGoal g in unquote (prove g)
-
-open import Data.Reflect
