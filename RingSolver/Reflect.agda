@@ -2,6 +2,7 @@
 module RingSolver.Reflect where
 
 open import Prelude
+open import Prelude.Equality.Unsafe
 open import Data.Reflect
 open import Data.Reflect.Quote
 open import Control.Monad.State
@@ -128,16 +129,25 @@ getProof nothing ()
 cantProve : Set → ⊤
 cantProve _ = _
 
+invalidGoal : Set → ⊤
+invalidGoal _ = _
+
 prove : Term → Term
 prove t =
   case termToExp t of
-  λ { nothing → qProofError (stripImplicit t)
-    ; (just ((e₁ , e₂) , Γ)) →
+  λ { nothing →
       def (quote getProof)
-        $ vArg (def (quote proof) ( vArg (` e₁)
-                                  ∷ vArg (` e₂)
-                                  ∷ vArg (quotedEnv Γ)
-                                  ∷ []))
-        ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
+        $ vArg (con (quote nothing) [])
+        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
+        ∷ []
+    ; (just ((e₁ , e₂) , Γ)) →
+      def (quote safeEqual)
+        $ vArg (def (quote getProof)
+          $ vArg (def (quote proof) ( vArg (` e₁)
+                                    ∷ vArg (` e₂)
+                                    ∷ vArg (quotedEnv Γ)
+                                    ∷ []))
+          ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
+          ∷ [])
         ∷ []
     }
