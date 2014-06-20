@@ -57,3 +57,10 @@ mul-commute (suc x) y rewrite mul-commute x y
                             | mul-distr-l y 1 x
                             | mul-1-r y
                             = add-commute (y * x) _
+
+add-inj₂ : ∀ x y z → x + y ≡ x + z → y ≡ z
+add-inj₂  zero   y z p = p
+add-inj₂ (suc x) y z p = add-inj₂ x y z (suc-inj p)
+
+add-inj₁ : ∀ x y z → x + z ≡ y + z → x ≡ y
+add-inj₁ x y z rewrite add-commute x z | add-commute y z = add-inj₂ z x y
