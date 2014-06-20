@@ -125,7 +125,7 @@ getProof : {u v : Nat} (prf : Maybe (u ≡ v)) → ValidProof {x = prf} → u �
 getProof (just eq) _ = eq
 getProof nothing ()
 
-cantProve : Set → ⊤ {lzero}
+cantProve : Set → ⊤
 cantProve _ = _
 
 prove : Term → Term
