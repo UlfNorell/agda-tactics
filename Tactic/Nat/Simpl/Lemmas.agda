@@ -87,14 +87,14 @@ cancel-sound′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
                       = cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ H
 cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl
   with compare i j
-cancel-sound′ a b ((i , x) ∷ nf₁) ((.(i + suc k) , .x) ∷ nf₂) ρ H | equal refl | less (diff k)
+cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff k)
   rewrite fst-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
         | snd-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
         | add-assoc b (et ρ (suc k , x)) (⟦ snd (cancel nf₁ nf₂) ⟧n ρ)
         | shuffle₁ a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
         | cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ H
         = quoteGoal g in unquote (auto g)
-cancel-sound′ a b ((.(j + suc k) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff k)
+cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff k)
   rewrite fst-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
         | snd-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
         | add-assoc a (et ρ (suc k , x)) (⟦ fst (cancel nf₁ nf₂) ⟧n ρ)
