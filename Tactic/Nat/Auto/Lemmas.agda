@@ -1,11 +1,11 @@
 
-module RingSolver.Auto.Lemmas where
+module Tactic.Nat.Auto.Lemmas where
 
 open import Prelude
 open import EqReasoning
-open import RingSolver.NF
-open import RingSolver.Exp
-open import RingSolver.Bag
+open import Tactic.Nat.NF
+open import Tactic.Nat.Exp
+open import Tactic.Nat.Bag
 open import Data.Nat.Lemmas
 
 map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →

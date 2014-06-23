@@ -1,15 +1,15 @@
 
-module RingSolver.Simpl.Lemmas where
+module Tactic.Nat.Simpl.Lemmas where
 
 open import Prelude
 open import EqReasoning
-open import RingSolver.NF
-open import RingSolver.Exp
-open import RingSolver.Bag
-open import RingSolver.Auto
+open import Tactic.Nat.NF
+open import Tactic.Nat.Exp
+open import Tactic.Nat.Bag
+open import Tactic.Nat.Auto
 open import Data.Nat.Lemmas
 open import Data.List.Lemmas
-open import RingSolver.Auto.Lemmas
+open import Tactic.Nat.Auto.Lemmas
 
 NFEqS : NF × NF → Env → Set
 NFEqS (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧ns ρ ≡ ⟦ nf₂ ⟧ns ρ
@@ -30,7 +30,7 @@ ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
 ts-sound (1 , x) ρ = product1-sound (map ρ x)
 ts-sound (suc (suc i) , x) ρ
   rewrite sym (product1-sound (map ρ x))
-        = quoteGoal g in unquote (prove g)
+        = quoteGoal g in unquote (auto g)
 
 map-eq : ∀ {a b} {A : Set a} {B : Set b} (f g : A → B) →
            (∀ x → f x ≡ g x) → ∀ xs → map f xs ≡ map g xs
@@ -66,7 +66,7 @@ eta : ∀ {a b} {A : Set a} {B : Set b} (p : A × B) → p ≡ (fst p , snd p)
 eta (x , y) = refl
 
 shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
-shuffle₁ a b c = quoteGoal g in unquote (prove g)
+shuffle₁ a b c = quoteGoal g in unquote (auto g)
 
 cancel-sound′ : ∀ a b nf₁ nf₂ ρ → a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ →
                              a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ
@@ -93,18 +93,18 @@ cancel-sound′ a b ((i , x) ∷ nf₁) ((.(i + suc k) , .x) ∷ nf₂) ρ H | e
         | add-assoc b (et ρ (suc k , x)) (⟦ snd (cancel nf₁ nf₂) ⟧n ρ)
         | shuffle₁ a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
         | cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ H
-        = quoteGoal g in unquote (prove g)
+        = quoteGoal g in unquote (auto g)
 cancel-sound′ a b ((.(j + suc k) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff k)
   rewrite fst-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
         | snd-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
         | add-assoc a (et ρ (suc k , x)) (⟦ fst (cancel nf₁ nf₂) ⟧n ρ)
         | shuffle₁ b (et ρ (j , x)) (⟦ nf₂ ⟧n ρ)
         | sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ H)
-        = quoteGoal g in unquote (prove g)
+        = quoteGoal g in unquote (auto g)
 cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl
   rewrite shuffle₁ a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
         | cancel-sound′ a b nf₁ nf₂ ρ H
-        = quoteGoal g in unquote (prove g)
+        = quoteGoal g in unquote (auto g)
 
 cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
 cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂))

@@ -1,5 +1,5 @@
 
-module RingSolver.Reflect where
+module Tactic.Nat.Reflect where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
@@ -7,7 +7,7 @@ open import Data.Reflect
 open import Data.Reflect.Quote
 open import Control.Monad.State
 
-open import RingSolver.Exp
+open import Tactic.Nat.Exp
 
 R = StateT (Nat × List (Term × Nat)) Maybe
 

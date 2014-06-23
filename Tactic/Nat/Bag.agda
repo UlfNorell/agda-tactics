@@ -1,5 +1,5 @@
 
-module RingSolver.Bag where
+module Tactic.Nat.Bag where
 
 open import Prelude
 

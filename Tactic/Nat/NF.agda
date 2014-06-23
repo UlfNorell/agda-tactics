@@ -1,9 +1,9 @@
 
-module RingSolver.NF where
+module Tactic.Nat.NF where
 
 open import Prelude
-open import RingSolver.Exp
-open import RingSolver.Bag
+open import Tactic.Nat.Exp
+open import Tactic.Nat.Bag
 
 Term = List Var
 NF   = List (Nat × Term)
@@ -44,12 +44,6 @@ norm (e ⟨*⟩ e₁) = norm e *nf norm e₁
 
 e₁ = var 0 ⟨*⟩ var 1 ⟨+⟩ var 1 ⟨+⟩ var 1
 e₂ = var 1 ⟨*⟩ (lit 2 ⟨+⟩ var 0)
-
-product : List Nat → Nat
-product = foldr _*_ 1
-
-sum : List Nat → Nat
-sum = foldr _+_ 0
 
 product1 : List Nat → Nat
 product1 [] = 1

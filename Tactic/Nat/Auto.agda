@@ -1,5 +1,5 @@
 
-module RingSolver.Auto where
+module Tactic.Nat.Auto where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
@@ -7,10 +7,12 @@ open import Data.Reflect
 open import Data.Reflect.Quote
 
 open import EqReasoning
-open import RingSolver.NF hiding (Term)
-open import RingSolver.Exp
-open import RingSolver.Reflect
-open import RingSolver.Auto.Lemmas
+open import Tactic.Nat.NF hiding (Term)
+open import Tactic.Nat.Exp
+open import Tactic.Nat.Reflect
+open import Tactic.Nat.Auto.Lemmas
+
+open Tactic.Nat.Reflect public using (cantProve; invalidGoal)
 
 private
   EqNF : Eq NF
@@ -28,8 +30,8 @@ proof e₁ e₂ ρ with norm e₁ == norm e₂
 proof e₁ e₂ ρ    | no  _    = nothing
 proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
-prove : Term → Term
-prove t =
+auto : Term → Term
+auto t =
   case termToExp t of
   λ { nothing →
       def (quote getProof)

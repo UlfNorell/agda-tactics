@@ -1,5 +1,5 @@
 
-module RingSolver.Exp where
+module Tactic.Nat.Exp where
 
 open import Prelude
 

@@ -1,13 +1,13 @@
 
-module RingSolver.Test where
+module Tactic.Nat.Test where
 
 open import Prelude
 open import Data.Reflect
 
-open import RingSolver
-open import RingSolver.Exp
-open import RingSolver.NF hiding (Term)
-open import RingSolver.Reflect
+open import Tactic.Nat
+open import Tactic.Nat.Exp
+open import Tactic.Nat.NF hiding (Term)
+open import Tactic.Nat.Reflect
 
 infixr 8 _^_
 _^_ : Nat → Nat → Nat
