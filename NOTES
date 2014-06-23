@@ -3,15 +3,17 @@ TODO
 
   - code cleanup
 
-  - restructure so I can use simplification soundness proof (which uses prove
-    tactic)
-
 NEW FEATURES
 
   - using assumptions
     could work if they have the form "atom ≡ exp"
 
     although in that case it might be nicer with a general rewrite tactic
+
+    Target example: get sumSquare example working in one call.
+
+  - a light-weight approach to assumptions: handle function types in simplify,
+    simplifying both assumptions and goal
 
   - rewrite tactic
 
@@ -20,10 +22,17 @@ NEW FEATURES
 
   - cong tactic
 
+    Idea: traverse atoms and normalise any nat terms inside them
+
   - Look at "Proving Equalities in a Commutative Ring Done Right in Coq"
     by Grégoire and Mahboubi.
 
   - Think about regeneralize to other types.
 
   - Induction tactic.
+
+  - List tactic
+
+  - Combined List and Nat tactic. In the cancel proof there are lots of
+    opportunities for reasoning about sum and product.
 
