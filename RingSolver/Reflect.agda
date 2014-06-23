@@ -8,7 +8,6 @@ open import Data.Reflect.Quote
 open import Control.Monad.State
 
 open import RingSolver.Exp
-open import RingSolver
 
 R = StateT (Nat × List (Term × Nat)) Maybe
 
@@ -131,40 +130,3 @@ cantProve _ = _
 invalidGoal : Set → ⊤
 invalidGoal _ = _
 
-prove : Term → Term
-prove t =
-  case termToExp t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
-    ; (just ((e₁ , e₂) , Γ)) →
-      def (quote safeEqual)
-        $ vArg (def (quote getProof)
-          $ vArg (def (quote proof) ( vArg (` e₁)
-                                    ∷ vArg (` e₂)
-                                    ∷ vArg (quotedEnv Γ)
-                                    ∷ []))
-          ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
-          ∷ [])
-        ∷ []
-    }
-
-simplify : Term → Term
-simplify t =
-  case termToExp t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
-    ; (just ((e₁ , e₂) , Γ)) →
-      def (quote _∘_)
-        $ vArg (def (quote safeEqual) [])
-        ∷ vArg (def (quote simpl) ( vArg (` e₁)
-                                  ∷ vArg (` e₂)
-                                  ∷ vArg (quotedEnv Γ)
-                                  ∷ []))
-        ∷ []
-    }

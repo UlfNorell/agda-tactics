@@ -1,5 +1,5 @@
 
-module RingSolver.Lemmas where
+module RingSolver.Auto.Lemmas where
 
 open import Prelude
 open import EqReasoning
@@ -7,9 +7,6 @@ open import RingSolver.NF
 open import RingSolver.Exp
 open import RingSolver.Bag
 open import Data.Nat.Lemmas
-
-_=>_ : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-refl => p = p
 
 map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
           map f (xs ++ ys) ≡ map f xs ++ map f ys
@@ -126,13 +123,3 @@ sound (e ⟨*⟩ e₁) ρ =
   ⟦ norm e ⟧n ρ * ⟦ norm e₁ ⟧n ρ
     ≡⟨ ⟨*⟩-sound (norm e) (norm e₁) ρ ⟩ʳ
   ⟦ norm e *nf norm e₁ ⟧n ρ ∎
-
-NFEqS : NF × NF → Env → Set
-NFEqS (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧ns ρ ≡ ⟦ nf₂ ⟧ns ρ
-
-NFEq : NF × NF → Env → Set
-NFEq (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧n ρ ≡ ⟦ nf₂ ⟧n ρ
-
-postulate
-  cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
--- cancel-sound nf₁ nf₂ ρ h = {!!}

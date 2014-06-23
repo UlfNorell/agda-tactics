@@ -2,7 +2,7 @@
 module DivMod where
 
 open import Prelude
-open import RingSolver.Reflect
+open import RingSolver
 open import EqReasoning
 
 sum : List Nat → Nat
