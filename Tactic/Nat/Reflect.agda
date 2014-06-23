@@ -23,8 +23,15 @@ FunctorR = FunctorStateT
 fail : ∀ {A} → R A
 fail = lift nothing
 
+runR : ∀ {A} → R A → Maybe (A × List Term)
+runR r =
+  second (reverse ∘ map fst ∘ snd) <$>
+  runStateT r (0 , [])
+
+
 pattern `Nat = def (quote Nat) []
 
+infix  4 _`≡_
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ arg _ `Nat ∷ arg _ x ∷ arg _ y ∷ [])
 
 pattern _`+_ x y = def (quote _+_) (arg _ x ∷ arg _ y ∷ [])
@@ -53,11 +60,12 @@ termToExpR t =
   λ { nothing  → fresh t
     ; (just i) → pure (var i) }
 
+termToEqR : Term → R (Exp × Exp)
+termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
+termToEqR _ = fail
+
 termToExp : Term → Maybe ((Exp × Exp) × List Term)
-termToExp (lhs `≡ rhs) =
-  second (reverse ∘ map fst ∘ snd) <$>
-  runStateT (_,_ <$> termToExpR lhs <*> termToExpR rhs) (0 , [])
-termToExp _ = nothing
+termToExp t = runR (termToEqR t)
 
 buildEnv : List Nat → Env
 buildEnv [] i = 0
