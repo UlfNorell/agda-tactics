@@ -19,7 +19,7 @@ private
   EqNF = EqList {{EqA = EqPair {{EqB = EqList}} }}
 
 liftNFEq : ∀ e₁ e₂ ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
-liftNFEq e₁ e₂ ρ H =
+liftNFEq e₁ e₂ ρ H = safeEqual $
   ⟦ e₁      ⟧e ρ ≡⟨ sound e₁ ρ ⟩
   ⟦ norm e₁ ⟧n ρ ≡⟨ H ⟩
   ⟦ norm e₂ ⟧n ρ ≡⟨ sound e₂ ρ ⟩ʳ
@@ -39,13 +39,11 @@ auto t =
         ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
         ∷ []
     ; (just ((e₁ , e₂) , Γ)) →
-      def (quote safeEqual)
-        $ vArg (def (quote getProof)
-          $ vArg (def (quote proof) ( vArg (` e₁)
-                                    ∷ vArg (` e₂)
-                                    ∷ vArg (quotedEnv Γ)
-                                    ∷ []))
-          ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
-          ∷ [])
+      def (quote getProof)
+        $ vArg (def (quote proof) ( vArg (` e₁)
+                                  ∷ vArg (` e₂)
+                                  ∷ vArg (quotedEnv Γ)
+                                  ∷ []))
+        ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
         ∷ []
     }
