@@ -15,6 +15,11 @@ NEW FEATURES
   - a light-weight approach to assumptions: handle function types in simplify,
     simplifying both assumptions and goal
 
+    that would require completeness proofs for simplification.
+
+    It works! (Just have to prove completeness...) Can now get sumSquare with
+    one call.
+
   - rewrite tactic
 
     How would it get the type of the equation to rewrite by? Could do an

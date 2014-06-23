@@ -31,8 +31,11 @@ runR r =
 
 pattern `Nat = def (quote Nat) []
 
+infixr 1 _`->_
 infix  4 _`≡_
+
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ arg _ `Nat ∷ arg _ x ∷ arg _ y ∷ [])
+pattern _`->_ a b = pi (vArg (el (lit 0) a)) (el (lit 0) b)
 
 pattern _`+_ x y = def (quote _+_) (arg _ x ∷ arg _ y ∷ [])
 pattern _`*_ x y = def (quote _*_) (arg _ x ∷ arg _ y ∷ [])
@@ -60,12 +63,52 @@ termToExpR t =
   λ { nothing  → fresh t
     ; (just i) → pure (var i) }
 
+private
+  Cut : Set → Set
+  Cut A = Nat → Nat → A → Maybe A
+  cutArgs : Cut (List (Arg Term))
+  cutArg  : Cut (Arg Term)
+  cutArgType : Cut (Arg Type)
+  cutType : Cut Type
+
+  cut : Cut Term
+  cut lo hi (var x args) =
+    if x < lo then var x <$> cutArgs lo hi args
+    else if x < hi then nothing
+    else (var (x + lo - hi) <$> cutArgs lo hi args)
+  cut lo hi (con c args) = con c <$> cutArgs lo hi args
+  cut lo hi (def f args) = def f <$> cutArgs lo hi args
+  cut lo hi (lam v t) = lam v <$> cut (suc lo) (suc hi) t
+  cut lo hi (pi a b) = pi <$> cutArgType lo hi a <*> cutType (suc lo) (suc hi) b
+  cut lo hi (sort x) = just (sort x)  -- todo cutSort
+  cut lo hi unknown = just unknown
+
+  cutArgs lo hi [] = just []
+  cutArgs lo hi (x ∷ args) = _∷_ <$> cutArg lo hi x <*> cutArgs lo hi args
+  cutArg lo hi (arg i v) = arg i <$> cut lo hi v
+  cutArgType lo hi (arg i v) = arg i <$> cutType lo hi v
+  cutType lo hi (el s v) = el s <$> cut lo hi v  -- todo cutSort
+
+  lower : Nat → Term → R Term
+  lower 0 = pure
+  lower i = lift ∘ cut 0 i
+
 termToEqR : Term → R (Exp × Exp)
 termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
 termToEqR _ = fail
 
+termToHypsR′ : Nat → Term → R (List (Exp × Exp))
+termToHypsR′ i (hyp `-> a) = _∷_ <$> (termToEqR =<< lower i hyp) <*> termToHypsR′ (suc i) a
+termToHypsR′ i a = [_] <$> (termToEqR =<< lower i a)
+
+termToHypsR : Term → R (List (Exp × Exp))
+termToHypsR = termToHypsR′ 0
+
 termToExp : Term → Maybe ((Exp × Exp) × List Term)
 termToExp t = runR (termToEqR t)
+
+termToHyps : Term → Maybe (List (Exp × Exp) × List Term)
+termToHyps t = runR (termToHypsR t)
 
 buildEnv : List Nat → Env
 buildEnv [] i = 0
