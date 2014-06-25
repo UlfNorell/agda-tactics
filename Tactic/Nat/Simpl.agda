@@ -51,19 +51,19 @@ complicate (e₁ , e₂) ρ H =
   cancel-complete (norm e₁) (norm e₂) ρ
   (unliftNFEq e₁ e₂ ρ H)
 
-simpl : Term → Term
-simpl t =
-  case termToExp t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
-    ; (just ((e₁ , e₂) , Γ)) →
-      def (quote simplify) ( vArg (con (quote _,_) (vArg (` e₁) ∷ vArg (` e₂) ∷ []))
-                           ∷ vArg (quotedEnv Γ)
-                           ∷ [])
-    }
+-- simpl : Term → Term
+-- simpl t =
+--   case termToExp t of
+--   λ { nothing →
+--       def (quote getProof)
+--         $ vArg (con (quote nothing) [])
+--         ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
+--         ∷ []
+--     ; (just ((e₁ , e₂) , Γ)) →
+--       def (quote simplify) ( vArg (con (quote _,_) (vArg (` e₁) ∷ vArg (` e₂) ∷ []))
+--                            ∷ vArg (quotedEnv Γ)
+--                            ∷ [])
+--     }
 
 simplifyH : ∀ goal ρ → ⟦ goal ⟧hs ρ → ⟦ goal ⟧h ρ
 simplifyH []            ρ ()
@@ -73,8 +73,8 @@ simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (c
 QGoal : Quotable (List (Exp × Exp))
 QGoal = QuotableList {{QuotableSigma {{QuotableB = ⋯}}}}
 
-simplH : Term → Term
-simplH t =
+simpl : Term → Term
+simpl t =
   case termToHyps t of
   λ { nothing →
       def (quote getProof)
