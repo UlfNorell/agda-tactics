@@ -13,19 +13,8 @@ open import Tactic.Nat.Auto
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
 
-postulate
-  cancel-complete′ : ∀ a b nf₁ nf₂ ρ →
-                     a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ →
-                     a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ
--- cancel-complete′ a b nf₁ nf₂ ρ H = {!!}
-
-cancel-complete : ∀ nf₁ nf₂ ρ → NFEq (nf₁ , nf₂) ρ → NFEqS (cancel nf₁ nf₂) ρ
-cancel-complete nf₁ nf₂ ρ H
-  rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂))
-        | ns-sound (fst (cancel nf₁ nf₂)) ρ
-        | ns-sound (snd (cancel nf₁ nf₂)) ρ
-        = cancel-complete′ 0 0 nf₁ nf₂ ρ H
-
+use : ∀ {a} {A B : Set a} → A → (A → B) → B
+use x f = f x
 
 ExpEq : Exp × Exp → Env → Set
 ExpEq (e₁ , e₂) ρ = ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
@@ -87,3 +76,17 @@ simpl t =
                             ∷ [])
     }
 
+assumed : Term → Term
+assumed t =
+  case termToHyps t of
+  λ { nothing →
+      def (quote getProof)
+        $ vArg (con (quote nothing) [])
+        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
+        ∷ []
+    ; (just (goal , Γ)) →
+      def (quote simplifyH) ( vArg (` goal)
+                            ∷ vArg (quotedEnv Γ)
+                            ∷ vArg (def (quote id) [])
+                            ∷ [])
+    }
