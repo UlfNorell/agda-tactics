@@ -7,23 +7,6 @@ open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
 open import EqReasoning
 
-downFrom : Nat → List Nat
-downFrom zero = []
-downFrom (suc n) = suc n ∷ downFrom n
-
-sumSquare : Nat → Nat
-sumSquare n = sum (map (λ x → x * x) (downFrom n))
-
-open import Data.Reflect
-
-use : ∀ {a} {A B : Set a} → A → (A → B) → B
-use x f = f x
-
-bla : ∀ n → sumSquare n * 6 ≡ (2 * n + 1) * (n + 1) * n
-bla zero = refl
-bla (suc n) =
-  use (bla n) quoteGoal g in unquote (simplH g) id
-
 data DivMod a b : Set where
   divModRes : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
 

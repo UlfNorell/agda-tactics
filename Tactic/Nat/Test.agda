@@ -41,3 +41,14 @@ test₃ x y = tactic auto
 
 -- bad : ∀ x y → x + y ≡ x * 2
 -- bad x y = tactic auto
+
+downFrom : Nat → List Nat
+downFrom zero = []
+downFrom (suc n) = suc n ∷ downFrom n
+
+sumSquare : Nat → Nat
+sumSquare n = sum (map (λ x → x * x) (downFrom n))
+
+sumSquareThm : ∀ n → sumSquare n * 6 ≡ (2 * n + 1) * (n + 1) * n
+sumSquareThm zero = refl
+sumSquareThm (suc n) = use (sumSquareThm n) $ tactic assumed
