@@ -20,6 +20,16 @@ NEW FEATURES
     It works! (Just have to prove completeness...) Can now get sumSquare with
     one call.
 
+    There should be a version that puts the 'id' in --> assumed.
+
+    Handle goals that are not equations in simplification.
+
+  - Using a + b ≡ 0 -> a ≡ 0.
+
+  - Dealing with minus.
+
+    Tricky! Needs care with underflow.
+
   - rewrite tactic
 
     How would it get the type of the equation to rewrite by? Could do an
