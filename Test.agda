@@ -1,5 +1,5 @@
 
-module Tactic.Nat.Test where
+module Test where
 
 open import Prelude
 open import Data.Reflect
