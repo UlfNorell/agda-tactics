@@ -21,3 +21,6 @@ cong₂ f refl refl = refl
 
 _≡tr_ : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 refl ≡tr p = p
+
+subst : ∀ {a p} {A : Set a} (P : A → Set p) {x y} → x ≡ y → P x → P y
+subst P refl px = px
