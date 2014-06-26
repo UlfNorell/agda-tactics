@@ -8,6 +8,7 @@ open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
 open import EqReasoning
 open import WellFounded
+open import Data.Nat.Lemmas
 
 lemModAux : ∀ k m n j → LessThan j n → modAux k m n j ≡ modAux 0 m (n - suc j) m
 lemModAux k m zero j (diffP _ ())
@@ -32,8 +33,19 @@ modLessAux k m (suc n) (suc j) (diffP d lt) =
   modLessAux (suc k) m n j
   $ diffP d $ use lt tactic assumed
 
+LessThan′ : Nat → Nat → Set
+LessThan′ a b = b ≡ b - suc a + suc a
+
+toPrimed : ∀ {a b} → LessThan a b → LessThan′ a b
+toPrimed {a = a} (diff k) rewrite lemPlusMinus k a = tactic auto
+
+modLessAux′ : ∀ k m n j → LessThan (k + j) (suc m) → LessThan′ (modAux k m n j) (suc m)
+modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
+
 modLess : ∀ a b → LessThan (a mod suc b) (suc b)
-modLess a b = modLessAux 0 b a b (diffP 0 (tactic auto))
+modLess a b = diffP (b - a mod suc b) $ safeEqual $
+              use (modLessAux′ 0 b a b (diffP 0 tactic auto))
+                   tactic assumed
 
 0≠1 : ¬ (0 ≡ 1)
 0≠1 ()
@@ -74,4 +86,9 @@ divmod-spec : ∀ a b′ → let b = suc b′ in
 divmod-spec a b = safeEqual (divmodAux 0 a b (wfNat a))
 
 data DivMod a b : Set where
-  divModRes : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
+  qr : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
+
+syntax divMod b a = a divmod b
+divMod : ∀ b {_ : NonZero b} a → DivMod a b
+divMod zero {} a
+divMod (suc b) a = qr (a div suc b) (a mod suc b) (modLess a b) (divmod-spec a b)
