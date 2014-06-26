@@ -22,7 +22,10 @@ NEW FEATURES
 
     There should be a version that puts the 'id' in --> assumed.
 
-    Handle goals that are not equations in simplification.
+    Handle goals that are not equations in simplification. What simpl should do
+    is just traverse the goal and rewrite any natural number terms it can find
+    and stitch things up with congruence. Maybe slightly tricky: terms are
+    layered.
 
   - Using a + b ≡ 0 -> a ≡ 0.
 
