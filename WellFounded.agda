@@ -1,26 +1,19 @@
-
+{-# OPTIONS -v profile.interactive:10 #-}
 module WellFounded where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
+open import Prelude.Equality.Unsafe using (safeEqual; unsafeEqual)
+open import Control.WellFounded
+open import Data.List
 open import Tactic.Nat
 open import EqReasoning
 
-data Acc {A : Set} {{OrdA : Ord A}} (x : A) : Set where
-  acc : (∀ y → LessThan y x → Acc y) → Acc x
+fix : {A : Set} {B : A → Set} {{OrdA : Ord A}} →
+      (∀ x → (∀ y → LessThan y x → B y) → B x) →
+      ∀ x → Acc LessThan x → B x
+fix f x (acc wf) = f x (λ y lt → fix f y (wf y lt))
 
-accSuc : {y : Nat} → Acc y → Acc (Nat.suc y)
-accSuc (acc f) = acc λ { ._ (diff zero) → acc f
-                       ; z (diffP (suc j) eq) → f z (diffP j (use eq (tactic assumed)))
-                       }
-
-wfNat′ : ∀ n y → LessNat y n → Acc y
-wfNat′  n  zero    lt      = acc λ { z (diffP _ ()) }
-wfNat′ ._ (suc y) (diff k) =
-  accSuc (wfNat′ (k + suc y) y (diffP k (tactic auto))) 
-
-wfNat : (n : Nat) → Acc n
-wfNat n = acc (wfNat′ n)
+-- Test case --
 
 lemCancelMinus : ∀ b → b - b ≡ 0
 lemCancelMinus zero    = refl
@@ -35,13 +28,14 @@ lemPlusMinus (suc a) (suc b) =
       lem = cong (λ z → z - b) (tactic auto)
   in lem ≡tr lemPlusMinus (suc a) b
 
-lem : ∀ a b → LessThan a b → b ≡ a + (b - a)
-lem a .(suc (k + a)) (diff k) rewrite lemPlusMinus (suc k) a = tactic auto
+private
+  lem : ∀ a b → LessThan a b → b ≡ a + (b - a)
+  lem a .(suc (k + a)) (diff k) rewrite lemPlusMinus (suc k) a = tactic auto
 
 lemLess : ∀ a b → LessThan (suc a) b → LessThan (b - suc a) b
 lemLess a b lt = diffP a $ safeEqual (lem (suc a) b lt)
 
-example′ : (n : Nat) → Acc n → Nat
+example′ : (n : Nat) → Acc LessThan n → Nat
 example′ n (acc wf) =
   case compare n 100 of
   λ { (greater gt) → example′ (n - 100) (wf _ (lemLess _ _ gt))
@@ -50,6 +44,32 @@ example′ n (acc wf) =
 example : Nat → Nat
 example n = example′ n (wfNat n)
 
--- Benchmark: example 10051
+example₂ : Nat → Nat
+example₂ n =
+  fix (λ n ex →
+    case compare n 100 of
+    λ { (greater gt) → ex (n - 100) (lemLess _ _ gt)
+      ; _ → n }) n (wfNat n)
+
+{-# NO_TERMINATION_CHECK #-}
+reference : Nat → Nat
+reference n =
+  case compare n 100 of
+  λ { (greater _) → reference (n - 100)
+    ; _ -> n }
+
+{-# NO_TERMINATION_CHECK #-}
+reference₂ : Nat → Nat
+reference₂ n =
+  case lessNat 100 n of
+  λ { true → reference (n - 100)
+    ; _ -> n }
+
+-- Benchmark: example 10,051
 --    12.5s
 --    11.0s  better lessThan proof in example
+--   < 1.0s
+--     8.0s  100,051
+--     7.3s  got rid of wfNat′
+--     4.8s  got rid of accSuc
+--     2.4s  cheating the first 10,000,000 iterations (as fast as the reference implementation)
