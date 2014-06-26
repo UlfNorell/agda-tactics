@@ -5,19 +5,19 @@ open import Prelude
 open import Tactic.Nat.Exp
 open import Tactic.Nat.Bag
 
-Term = List Var
-NF   = List (Nat × Term)
+Tm = List Var
+NF   = List (Nat × Tm)
 
-OrdTerm : Ord Term
-OrdTerm = OrdList
+OrdTm : Ord Tm
+OrdTm = OrdList
 
-OrdKTerm : Ord (Nat × Term)
-OrdKTerm = OrdPair
+OrdKTm : Ord (Nat × Tm)
+OrdKTm = OrdPair
 
 _+nf_ : NF → NF → NF
 _+nf_ a b = union a b
 
-merge : Term → Term → Term
+merge : Tm → Tm → Tm
 merge x [] = x
 merge [] y = y
 merge (i ∷ x) (j ∷ y) =
@@ -28,12 +28,12 @@ sort : NF → NF
 sort [] = []
 sort (x ∷ nf) = union [ x ] (sort nf)
 
-mulTerm : Nat × Term → Nat × Term → Nat × Term
-mulTerm (a , x) (b , y) = a * b , merge x y
+mulTm : Nat × Tm → Nat × Tm → Nat × Tm
+mulTm (a , x) (b , y) = a * b , merge x y
 
 _*nf_ : NF → NF → NF
 []      *nf b = []
-(t ∷ a) *nf b = sort (map (mulTerm t) b) +nf (a *nf b)
+(t ∷ a) *nf b = sort (map (mulTm t) b) +nf (a *nf b)
 
 norm : Exp → NF
 norm (var x) = [ 1 , [ x ] ]
@@ -49,10 +49,10 @@ product1 : List Nat → Nat
 product1 [] = 1
 product1 (x ∷ xs) = foldl (λ n x → n * x) x xs
 
-⟦_⟧t : Nat × Term → Env → Nat
+⟦_⟧t : Nat × Tm → Env → Nat
 ⟦ k , v ⟧t ρ = k * product (map ρ v)
 
-⟦_⟧ts : Nat × Term → Env → Nat
+⟦_⟧ts : Nat × Tm → Env → Nat
 ⟦ 1 , v ⟧ts ρ = product1 (map ρ v)
 ⟦ k , v ⟧ts ρ = product1 (map ρ v) * k
 

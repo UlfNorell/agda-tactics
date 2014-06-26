@@ -67,16 +67,16 @@ map-merge (x ∷ xs) (y ∷ ys) ρ with lessNat x y
 ... | true  rewrite map-merge xs (y ∷ ys) ρ = mul-assoc (ρ x) _ _
 ... | false rewrite map-merge (x ∷ xs) ys ρ = shuffle₄ (ρ y) (ρ x) _ _
 
-mulTerm-sound : ∀ t t′ (ρ : Env) →
-                ⟦ mulTerm t t′ ⟧t ρ ≡ ⟦ t ⟧t ρ * ⟦ t′ ⟧t ρ
-mulTerm-sound (a , x) (b , y) ρ rewrite map-merge x y ρ
+mulTm-sound : ∀ t t′ (ρ : Env) →
+                ⟦ mulTm t t′ ⟧t ρ ≡ ⟦ t ⟧t ρ * ⟦ t′ ⟧t ρ
+mulTm-sound (a , x) (b , y) ρ rewrite map-merge x y ρ
                                       = shuffle₃ a b _ _
 
-mulTermDistr : ∀ t v (ρ : Env) → ⟦ map (mulTerm t) v ⟧n ρ ≡ ⟦ t ⟧t ρ * ⟦ v ⟧n ρ
-mulTermDistr t [] ρ = sym (mul-0-r (⟦ t ⟧t ρ))
-mulTermDistr t (t′ ∷ v) ρ =
-  ⟦ mulTerm t t′ ⟧t ρ + ⟦ map (mulTerm t) v ⟧n ρ
-    ≡⟨ cong₂ _+_ (mulTerm-sound t t′ ρ) (mulTermDistr t v ρ) ⟩
+mulTmDistr : ∀ t v (ρ : Env) → ⟦ map (mulTm t) v ⟧n ρ ≡ ⟦ t ⟧t ρ * ⟦ v ⟧n ρ
+mulTmDistr t [] ρ = sym (mul-0-r (⟦ t ⟧t ρ))
+mulTmDistr t (t′ ∷ v) ρ =
+  ⟦ mulTm t t′ ⟧t ρ + ⟦ map (mulTm t) v ⟧n ρ
+    ≡⟨ cong₂ _+_ (mulTm-sound t t′ ρ) (mulTmDistr t v ρ) ⟩
   ⟦ t ⟧t ρ * ⟦ t′ ⟧t ρ + ⟦ t ⟧t ρ * ⟦ v ⟧n ρ
     ≡⟨ mul-distr-l (⟦ t ⟧t ρ) _ _ ⟩ʳ
   ⟦ t ⟧t ρ * ⟦ t′ ∷ v ⟧n ρ ∎
@@ -90,14 +90,14 @@ sort-sound (x ∷ xs) ρ rewrite ⟨+⟩-sound [ x ] (sort xs) ρ
 ⟨*⟩-sound : ∀ v₁ v₂ (ρ : Env) → ⟦ v₁ *nf v₂ ⟧n ρ ≡ ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
 ⟨*⟩-sound [] v₂ ρ = refl
 ⟨*⟩-sound (t ∷ v₁) v₂ ρ =
-  ⟦ sort (map (mulTerm t) v₂) +nf (v₁ *nf v₂) ⟧n ρ
-    ≡⟨ ⟨+⟩-sound (sort (map (mulTerm t) v₂)) (v₁ *nf v₂) ρ ⟩
-  ⟦ sort (map (mulTerm t) v₂) ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
-    ≡⟨ cong (flip _+_ (⟦ v₁ *nf v₂ ⟧n ρ)) (sort-sound (map (mulTerm t) v₂) ρ) ⟩
-  ⟦ map (mulTerm t) v₂ ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
-    ≡⟨ cong (_+_ (⟦ map (mulTerm t) v₂ ⟧n ρ)) (⟨*⟩-sound v₁ v₂ ρ) ⟩
-  ⟦ map (mulTerm t) v₂ ⟧n ρ + ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
-    ≡⟨ cong (flip _+_ (⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ)) (mulTermDistr t v₂ ρ) ⟩
+  ⟦ sort (map (mulTm t) v₂) +nf (v₁ *nf v₂) ⟧n ρ
+    ≡⟨ ⟨+⟩-sound (sort (map (mulTm t) v₂)) (v₁ *nf v₂) ρ ⟩
+  ⟦ sort (map (mulTm t) v₂) ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
+    ≡⟨ cong (flip _+_ (⟦ v₁ *nf v₂ ⟧n ρ)) (sort-sound (map (mulTm t) v₂) ρ) ⟩
+  ⟦ map (mulTm t) v₂ ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
+    ≡⟨ cong (_+_ (⟦ map (mulTm t) v₂ ⟧n ρ)) (⟨*⟩-sound v₁ v₂ ρ) ⟩
+  ⟦ map (mulTm t) v₂ ⟧n ρ + ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
+    ≡⟨ cong (flip _+_ (⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ)) (mulTmDistr t v₂ ρ) ⟩
   ⟦ t ⟧t ρ * ⟦ v₂ ⟧n ρ + ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
     ≡⟨ mul-distr-r (⟦ t ⟧t ρ) _ _ ⟩ʳ
   ⟦ t ∷ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ ∎

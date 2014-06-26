@@ -7,7 +7,7 @@ open import Data.Reflect
 open import Data.Reflect.Quote
 
 open import EqReasoning
-open import Tactic.Nat.NF hiding (Term)
+open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Auto.Lemmas
