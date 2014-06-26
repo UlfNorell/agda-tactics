@@ -3,6 +3,7 @@ module DivMod where
 
 open import Prelude
 open import Prelude.Equality.Unsafe using (safeEqual)
+open import Control.WellFounded
 open import Tactic.Nat
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
@@ -66,7 +67,7 @@ modAuxGt k zero b j lt = tactic auto
 modAuxGt k (suc a) b  zero   lt = notLess1 lt
 modAuxGt k (suc a) b (suc j) lt = use (modAuxGt (suc k) a b j (lessSuc-inj lt)) tactic assumed
 
-divmodAux : ∀ k a b → Acc a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
+divmodAux : ∀ k a b → Acc LessThan a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
 divmodAux k a b wf with compare b a
 ... | greater (diffP j p)
       rewrite divAuxGt k a b b (diffP (suc j) (cong suc p))
