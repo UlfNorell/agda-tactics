@@ -3,9 +3,12 @@ TODO
 
   - code cleanup
 
+  - move weakening and strengthening to Data.Reflect
+
 NEW FEATURES
 
   - using assumptions
+
     could work if they have the form "atom ≡ exp"
 
     although in that case it might be nicer with a general rewrite tactic
@@ -22,10 +25,36 @@ NEW FEATURES
 
     There should be a version that puts the 'id' in --> assumed.
 
-    Handle goals that are not equations in simplification. What simpl should do
-    is just traverse the goal and rewrite any natural number terms it can find
-    and stitch things up with congruence. Maybe slightly tricky: terms are
-    layered.
+  - cong tactic
+
+    Idea: traverse atoms and normalise any nat terms inside them
+
+    This is actually whay simpl should do.
+    Traverse the goal and rewrite any natural number terms it can find and
+    stitch things up with congruence. Maybe slightly tricky: terms are layered.
+
+    Also tricky: can't represent contexts in a well-typed way, so the
+    congruence calls need to appear in the unquoted term. Actually they would be
+    calls to subst.
+
+    What should the expression representation be?
+
+      - Vars in Exps stand for actual terms
+      - Terms can contain exps
+
+    First attempt:
+
+      data CExp : Set where
+        atom : Term → CExp
+        cxt  : Term → List (Exp × List CExp) → CExp
+          -- cxt (λ x₁ .. xm → C[x₁..xm])
+          --     [ ei[y₁..yn] , [y₁↦c₁..yn↦cn] ]i
+
+    Actually, this isn't quite a generalization of simpl. Simpl does
+    cancellation of equations which cong wouldn't do. So I guess it needs to be
+    a separate tactic. Possibly it could do both... but lets do just cong
+    first. I guess this should really be called simpl and simpl should be
+    cancel.
 
   - Using a + b ≡ 0 -> a ≡ 0.
 
@@ -38,12 +67,8 @@ NEW FEATURES
     How would it get the type of the equation to rewrite by? Could do an
     identity function trick and grab the hidden argument.
 
-  - cong tactic
-
-    Idea: traverse atoms and normalise any nat terms inside them
-
   - Look at "Proving Equalities in a Commutative Ring Done Right in Coq"
-    by Grégoire and Mahboubi.
+    by Grégoire and Mahboubi. Also read up on Coq tactics in general.
 
   - Think about regeneralize to other types.
 
@@ -53,4 +78,8 @@ NEW FEATURES
 
   - Combined List and Nat tactic. In the cancel proof there are lots of
     opportunities for reasoning about sum and product.
+
+  - Inequality tactics (for nat)
+
+  - Data.Reflect.WellScoped
 
