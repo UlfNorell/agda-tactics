@@ -1,4 +1,4 @@
-
+{-# OPTIONS -v profile.interactive:10 #-}
 module Test where
 
 open import Prelude
@@ -6,7 +6,7 @@ open import Data.Reflect
 
 open import Tactic.Nat
 open import Tactic.Nat.Exp
-open import Tactic.Nat.NF hiding (Term)
+open import Tactic.Nat.NF
 open import Tactic.Nat.Reflect
 
 infixr 8 _^_
@@ -32,9 +32,8 @@ test₃ x y = tactic auto
 -- test₄ : ∀ x y → (x + y) ^ 16 ≡ (x + y) * (x + y) ^ 15
 -- test₄ x y = tactic auto
 
--- Need quoted literals to do this really efficiently.
--- test₅ : ∀ x → x * 400 + 2 ≡ 2 * (x * 200 + 1)
--- test₅ x = tactic auto
+test₅ : ∀ x → x * 400 + 2 ≡ 2 * (x * 200 + 1)
+test₅ x = tactic auto
 
 -- foo : (x y : Bool) → x ≡ (y && false)
 -- foo x y = tactic auto
