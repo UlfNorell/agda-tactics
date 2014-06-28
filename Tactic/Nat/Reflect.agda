@@ -95,6 +95,36 @@ private
   lower 0 = pure
   lower i = lift ∘ cut 0 i
 
+private
+  Up : Set → Set
+  Up A = Nat → Nat → A → A
+  upArgs : Up (List (Arg Term))
+  upArg  : Up (Arg Term)
+  upArgType : Up (Arg Type)
+  upType : Up Type
+
+  up : Up Term
+  up lo k (var x args) =
+    if x < lo then var x (upArgs lo k args)
+    else var (x + k) (upArgs lo k args)
+  up lo k (con c args) = con c $ upArgs lo k args
+  up lo k (def f args) = def f $ upArgs lo k args
+  up lo k (lam v t) = lam v $ up (suc lo) k t
+  up lo k (pi a b) = pi (upArgType lo k a) (upType (suc lo) (suc k) b)
+  up lo k (sort x) = sort x  -- todo upSort
+  up lo k (lit l) = lit l
+  up lo k unknown = unknown
+
+  upArgs lo k [] = []
+  upArgs lo k (x ∷ args) = upArg lo k x ∷ upArgs lo k args
+  upArg lo k (arg i v) = arg i (up lo k v)
+  upArgType lo k (arg i v) = arg i (upType lo k v)
+  upType lo k (el s v) = el s (up lo k v)  -- todo upSort
+
+raise : Nat → Term → Term
+raise 0 = id
+raise i = up 0 i
+
 termToEqR : Term → R (Exp × Exp)
 termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
 termToEqR _ = fail
