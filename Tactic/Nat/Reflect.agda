@@ -34,11 +34,11 @@ pattern `Nat = def (quote Nat) []
 infixr 1 _`->_
 infix  4 _`≡_
 
-pattern _`≡_ x y = def (quote _≡_) (_ ∷ arg _ `Nat ∷ arg _ x ∷ arg _ y ∷ [])
+pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
 pattern _`->_ a b = pi (vArg (el (lit 0) a)) (el (lit 0) b)
 
-pattern _`+_ x y = def (quote _+_) (arg _ x ∷ arg _ y ∷ [])
-pattern _`*_ x y = def (quote _*_) (arg _ x ∷ arg _ y ∷ [])
+pattern _`+_ x y = def (quote _+_) (vArg x ∷ vArg y ∷ [])
+pattern _`*_ x y = def (quote _*_) (vArg x ∷ vArg y ∷ [])
 pattern `0       = `zero
 pattern `1       = `suc `0
 
@@ -57,6 +57,7 @@ termToExpR (a `+ b) = _⟨+⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR (a `* b) = _⟨*⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR `0       = pure (lit 0)
 termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
+termToExpR (lit (nat n)) = pure (lit n)
 termToExpR unknown  = fail
 termToExpR t =
   gets (flip lookup t ∘ snd) >>=
@@ -81,6 +82,7 @@ private
   cut lo hi (lam v t) = lam v <$> cut (suc lo) (suc hi) t
   cut lo hi (pi a b) = pi <$> cutArgType lo hi a <*> cutType (suc lo) (suc hi) b
   cut lo hi (sort x) = just (sort x)  -- todo cutSort
+  cut lo hi (lit l) = just (lit l)
   cut lo hi unknown = just unknown
 
   cutArgs lo hi [] = just []
@@ -110,9 +112,12 @@ termToExp t = runR (termToEqR t)
 termToHyps : Term → Maybe (List (Exp × Exp) × List Term)
 termToHyps t = runR (termToHypsR t)
 
+-- termToCExp : Term → CExp  -- cannot fail
+-- termToCExp t = {!!}
+
 buildEnv : List Nat → Env
-buildEnv [] i = 0
-buildEnv (x ∷ xs) zero = x
+buildEnv []        i      = 0
+buildEnv (x ∷ xs)  zero   = x
 buildEnv (x ∷ xs) (suc i) = buildEnv xs i
 
 defaultArg : Term → Arg Term
@@ -149,6 +154,7 @@ stripImplicit (def f args) = def f (stripImplicitArgs args)
 stripImplicit (lam v t) = lam v (stripImplicit t)
 stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitType t₂)
 stripImplicit (sort x) = sort x
+stripImplicit (lit l) = lit l
 stripImplicit unknown = unknown
 
 stripImplicitType (el s v) = el s (stripImplicit v)
@@ -162,7 +168,7 @@ stripImplicitArg (arg (arg-info hidden r) x) = []
 stripImplicitArg (arg (arg-info instance r) x) = []
 
 quoteList : List Term → Term
-quoteList [] = con (quote List.[]) []
+quoteList []       = con (quote List.[]) []
 quoteList (t ∷ ts) = con (quote List._∷_) (defaultArg t ∷ defaultArg (quoteList ts) ∷ [])
 
 quotedEnv : List Term → Term
