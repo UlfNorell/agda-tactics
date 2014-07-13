@@ -3,8 +3,8 @@ module Tactic.Nat.Auto where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
-open import Data.Reflect
-open import Data.Reflect.Quote
+open import Builtin.Reflection
+open import Tactic.Reflection.Quote
 
 open import EqReasoning
 open import Tactic.Nat.NF
@@ -13,10 +13,6 @@ open import Tactic.Nat.Reflect
 open import Tactic.Nat.Auto.Lemmas
 
 open Tactic.Nat.Reflect public using (cantProve; invalidGoal)
-
-private
-  EqNF : Eq NF
-  EqNF = EqList {{EqA = EqPair {{EqB = EqList}} }}
 
 liftNFEq : ∀ e₁ e₂ ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
 liftNFEq e₁ e₂ ρ H = safeEqual $

@@ -12,50 +12,50 @@ open import WellFounded
 open import Data.Nat.Lemmas
 
 lemModAux : ∀ k m n j → LessThan j n → modAux k m n j ≡ modAux 0 m (n - suc j) m
-lemModAux k m zero j (diffP _ ())
+lemModAux k m zero j (diff _ ())
 lemModAux k m (suc n) zero lt = refl
-lemModAux k m (suc n) (suc j) (diffP d eq) =
+lemModAux k m (suc n) (suc j) (diff d eq) =
   lemModAux (suc k) m n j
-  $ diffP d $ use eq $ tactic assumed
+  $ diff d $ use eq $ tactic assumed
 
 lemDivAux : ∀ k m n j → LessThan j n → divAux k m n j ≡ divAux (suc k) m (n - suc j) m
-lemDivAux k m zero j (diffP _ ())
+lemDivAux k m zero j (diff _ ())
 lemDivAux k m (suc n) zero lt = refl
-lemDivAux k m (suc n) (suc j) (diffP d eq) =
+lemDivAux k m (suc n) (suc j) (diff d eq) =
   lemDivAux k m n j
-  $ diffP d $ use eq $ tactic assumed
+  $ diff d $ use eq $ tactic assumed
 
 modLessAux : ∀ k m n j → LessThan (k + j) (suc m) → LessThan (modAux k m n j) (suc m)
-modLessAux k m zero j (diffP d lt) =
-  diffP (j + d) $ lt ≡tr tactic auto
+modLessAux k m zero j (diff d lt) =
+  diff (j + d) $ lt ≡tr tactic auto
 modLessAux k m (suc n) zero _ =
-  modLessAux 0 m n m $ diffP 0 $ tactic auto
-modLessAux k m (suc n) (suc j) (diffP d lt) =
+  modLessAux 0 m n m $ diff 0 $ tactic auto
+modLessAux k m (suc n) (suc j) (diff d lt) =
   modLessAux (suc k) m n j
-  $ diffP d $ use lt tactic assumed
+  $ diff d $ use lt tactic assumed
 
 LessThan′ : Nat → Nat → Set
 LessThan′ a b = b ≡ b - suc a + suc a
 
 toPrimed : ∀ {a b} → LessThan a b → LessThan′ a b
-toPrimed {a = a} (diff k) rewrite lemPlusMinus k a = tactic auto
+toPrimed {a = a} (diff! k) rewrite lemPlusMinus k a = tactic auto
 
 modLessAux′ : ∀ k m n j → LessThan (k + j) (suc m) → LessThan′ (modAux k m n j) (suc m)
 modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
 
 modLess : ∀ a b → LessThan (a mod suc b) (suc b)
-modLess a b = diffP (b - a mod suc b) $ safeEqual $
-              use (modLessAux′ 0 b a b (diffP 0 tactic auto))
+modLess a b = diff (b - a mod suc b) $ safeEqual $
+              use (modLessAux′ 0 b a b (diff 0 tactic auto))
                    tactic assumed
 
 0≠1 : ∀ {a} {A : Set a} → 0 ≡ 1 → A
 0≠1 ()
 
 notLess1 : ∀ {a n} {A : Set a} → LessThan (suc n) 1 → A
-notLess1 (diffP k eq) = 0≠1 (use eq tactic simpl | λ ())
+notLess1 (diff k eq) = 0≠1 (use eq tactic simpl | λ ())
 
 lessSuc-inj : ∀ {a b} → LessNat (suc a) (suc b) → LessNat a b
-lessSuc-inj (diffP j eq) = diffP j (use eq tactic assumed)
+lessSuc-inj (diff j eq) = diff j (use eq tactic assumed)
 
 divAuxGt : ∀ k a b j → LessNat a (suc j) → divAux k b a j ≡ k
 divAuxGt k  zero   b  j      lt = refl
@@ -69,17 +69,17 @@ modAuxGt k (suc a) b (suc j) lt = use (modAuxGt (suc k) a b j (lessSuc-inj lt)) 
 
 divmodAux : ∀ k a b → Acc LessThan a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
 divmodAux k a b wf with compare b a
-... | greater (diffP j p)
-      rewrite divAuxGt k a b b (diffP (suc j) (cong suc p))
-            | modAuxGt 0 a b b (diffP (suc j) (cong suc p)) = refl
+... | greater (diff j p)
+      rewrite divAuxGt k a b b (diff (suc j) (cong suc p))
+            | modAuxGt 0 a b b (diff (suc j) (cong suc p)) = refl
 divmodAux k a .a wf | equal refl
-      rewrite divAuxGt k a a a (diff 0)
-            | modAuxGt 0 a a a (diff 0) = refl
-divmodAux k .(suc (j + b)) b (acc wf) | less (diff j)
-  rewrite lemDivAux k b (suc (j + b)) b (diff j)
-        | lemModAux 0 b (suc (j + b)) b (diff j)
+      rewrite divAuxGt k a a a (diff! 0)
+            | modAuxGt 0 a a a (diff! 0) = refl
+divmodAux k .(suc (j + b)) b (acc wf) | less (diff! j)
+  rewrite lemDivAux k b (suc (j + b)) b (diff! j)
+        | lemModAux 0 b (suc (j + b)) b (diff! j)
         | lemPlusMinus j b
-        = use (divmodAux (suc k) j b (wf j (diffP b (tactic auto))))
+        = use (divmodAux (suc k) j b (wf j (diff b (tactic auto))))
               (tactic assumed)
 
 divmod-spec : ∀ a b′ → let b = suc b′ in
@@ -104,4 +104,4 @@ parity : ∀ n → Either (Odd n) (Even n)
 parity n with n divmod 2
 parity n | qr q 0 lt eq = right $ dbl   q (use eq tactic assumed)
 parity n | qr q 1 lt eq = left  $ dbl+1 q (use eq tactic assumed)
-parity n | qr q (suc (suc _)) (diffP _ bad) _ = 0≠1 $ use bad tactic simpl | λ ()
+parity n | qr q (suc (suc _)) (diff _ bad) _ = 0≠1 $ use bad tactic simpl | λ ()

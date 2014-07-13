@@ -3,8 +3,8 @@ module Tactic.Nat.Simpl where
 
 open import Prelude
 open import Prelude.Equality.Unsafe using (safeEqual)
-open import Data.Reflect
-open import Data.Reflect.Quote
+open import Builtin.Reflection
+open import Tactic.Reflection.Quote
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF

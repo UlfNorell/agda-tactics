@@ -70,6 +70,6 @@ cancel ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) with compare x y
 ... | less    _ = first  (_∷_ (i , x)) (cancel nf₁ ((j , y) ∷ nf₂))
 ... | greater _ = second (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
 ... | equal   _ with compare i j
-...                | less    (diffP k _) = second (_∷_ (suc k , y)) (cancel nf₁ nf₂)
-...                | greater (diffP k _) = first  (_∷_ (suc k , x)) (cancel nf₁ nf₂)
-...                | equal    _ = cancel nf₁ nf₂
+...                | less    (diff k _) = second (_∷_ (suc k , y)) (cancel nf₁ nf₂)
+...                | greater (diff k _) = first  (_∷_ (suc k , x)) (cancel nf₁ nf₂)
+...                | equal    _         = cancel nf₁ nf₂

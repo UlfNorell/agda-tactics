@@ -2,7 +2,7 @@
 module Test where
 
 open import Prelude
-open import Data.Reflect
+open import Builtin.Reflection
 
 open import Tactic.Nat
 open import Tactic.Nat.Exp

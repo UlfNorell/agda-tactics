@@ -30,10 +30,10 @@ lemPlusMinus (suc a) (suc b) =
 
 private
   lem : ∀ a b → LessThan a b → b ≡ a + (b - a)
-  lem a .(suc (k + a)) (diff k) rewrite lemPlusMinus (suc k) a = tactic auto
+  lem a .(suc (k + a)) (diff! k) rewrite lemPlusMinus (suc k) a = tactic auto
 
 lemLess : ∀ a b → LessThan (suc a) b → LessThan (b - suc a) b
-lemLess a b lt = diffP a $ safeEqual (lem (suc a) b lt)
+lemLess a b lt = diff a $ safeEqual (lem (suc a) b lt)
 
 example′ : (n : Nat) → Acc LessThan n → Nat
 example′ n (acc wf) =

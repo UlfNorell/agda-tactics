@@ -3,7 +3,9 @@ TODO
 
   - code cleanup
 
-  - move weakening and strengthening to Data.Reflect
+  - move everything to agda-prelude
+
+    What to do about Data.Nat.Lemmas? Better name?
 
 NEW FEATURES
 
@@ -81,5 +83,55 @@ NEW FEATURES
 
   - Inequality tactics (for nat)
 
-  - Data.Reflect.WellScoped
+-- agda-prelude -----------------------------------------------------------
+
+-- Tactic.Reflection library --
+
+  - Free variables
+
+  - Substitutions
+
+  - Telescope view
+
+  - Tactic.Reflection.WellScoped
+
+  - Rename DeBruijn module
+
+-- Deriving --
+
+  - Constructor argument classification
+
+-- Name space structure --
+
+  I'm not too fond of Control.WellFounded, but I'm not sure where it fits
+  better.
+
+  Were to put deriving functions? Tactic.* ?
+
+  Data.Reflect.* needs better name. Maybe that's where deriving functions go as
+  well?
+
+  The big question is what the top-level names should be. In stdlib:
+    Algebra
+    Category
+    Data
+    Foreign
+    Function
+    IO
+    Induction
+    Relation
+  From Haskell
+    Control
+    System
+    Text
+    Test
+    Debug
+  In agda-prelude and agda-tactics
+    Prelude
+    Builtin
+    Tactic
+  Other ideas
+    Reflection
+
+  Maybe Data.Reflect isn't so bad. Or Data.Reflection.
 

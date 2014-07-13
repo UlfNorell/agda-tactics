@@ -3,22 +3,15 @@ module Tactic.Nat.Reflect where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
-open import Data.Reflect
-open import Data.Reflect.Quote
+open import Builtin.Reflection
+open import Tactic.Reflection.Quote
+open import Tactic.Reflection.DeBruijn
 open import Control.Monad.State
+open import Tactic.Reflection.Equality
 
 open import Tactic.Nat.Exp
 
 R = StateT (Nat × List (Term × Nat)) Maybe
-
-MonadR : Monad R
-MonadR = MonadStateT
-
-ApplicativeR : Applicative R
-ApplicativeR = ApplicativeStateT
-
-FunctorR : Functor R
-FunctorR = FunctorStateT
 
 fail : ∀ {A} → R A
 fail = lift nothing
@@ -27,7 +20,6 @@ runR : ∀ {A} → R A → Maybe (A × List Term)
 runR r =
   second (reverse ∘ map fst ∘ snd) <$>
   runStateT r (0 , [])
-
 
 pattern `Nat = def (quote Nat) []
 
@@ -65,65 +57,9 @@ termToExpR t =
     ; (just i) → pure (var i) }
 
 private
-  Cut : Set → Set
-  Cut A = Nat → Nat → A → Maybe A
-  cutArgs : Cut (List (Arg Term))
-  cutArg  : Cut (Arg Term)
-  cutArgType : Cut (Arg Type)
-  cutType : Cut Type
-
-  cut : Cut Term
-  cut lo hi (var x args) =
-    if x < lo then var x <$> cutArgs lo hi args
-    else if x < hi then nothing
-    else (var (x + lo - hi) <$> cutArgs lo hi args)
-  cut lo hi (con c args) = con c <$> cutArgs lo hi args
-  cut lo hi (def f args) = def f <$> cutArgs lo hi args
-  cut lo hi (lam v t) = lam v <$> cut (suc lo) (suc hi) t
-  cut lo hi (pi a b) = pi <$> cutArgType lo hi a <*> cutType (suc lo) (suc hi) b
-  cut lo hi (sort x) = just (sort x)  -- todo cutSort
-  cut lo hi (lit l) = just (lit l)
-  cut lo hi unknown = just unknown
-
-  cutArgs lo hi [] = just []
-  cutArgs lo hi (x ∷ args) = _∷_ <$> cutArg lo hi x <*> cutArgs lo hi args
-  cutArg lo hi (arg i v) = arg i <$> cut lo hi v
-  cutArgType lo hi (arg i v) = arg i <$> cutType lo hi v
-  cutType lo hi (el s v) = el s <$> cut lo hi v  -- todo cutSort
-
   lower : Nat → Term → R Term
   lower 0 = pure
-  lower i = lift ∘ cut 0 i
-
-private
-  Up : Set → Set
-  Up A = Nat → Nat → A → A
-  upArgs : Up (List (Arg Term))
-  upArg  : Up (Arg Term)
-  upArgType : Up (Arg Type)
-  upType : Up Type
-
-  up : Up Term
-  up lo k (var x args) =
-    if x < lo then var x (upArgs lo k args)
-    else var (x + k) (upArgs lo k args)
-  up lo k (con c args) = con c $ upArgs lo k args
-  up lo k (def f args) = def f $ upArgs lo k args
-  up lo k (lam v t) = lam v $ up (suc lo) k t
-  up lo k (pi a b) = pi (upArgType lo k a) (upType (suc lo) (suc k) b)
-  up lo k (sort x) = sort x  -- todo upSort
-  up lo k (lit l) = lit l
-  up lo k unknown = unknown
-
-  upArgs lo k [] = []
-  upArgs lo k (x ∷ args) = upArg lo k x ∷ upArgs lo k args
-  upArg lo k (arg i v) = arg i (up lo k v)
-  upArgType lo k (arg i v) = arg i (upType lo k v)
-  upType lo k (el s v) = el s (up lo k v)  -- todo upSort
-
-raise : Nat → Term → Term
-raise 0 = id
-raise i = up 0 i
+  lower i = lift ∘ strengthen i
 
 termToEqR : Term → R (Exp × Exp)
 termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
@@ -161,16 +97,17 @@ qProofError v = con (quote bad-goal) (defaultArg v ∷ [])
 
 implicitArg instanceArg : ∀ {A} → A → Arg A
 implicitArg = arg (arg-info hidden relevant)
-instanceArg = arg (arg-info instance relevant)
+instanceArg = arg (arg-info instance′ relevant)
 
-QuotableExp : Quotable Exp
-QuotableExp = record { ` = quoteExp }
-  where
-    quoteExp : Exp → Term
-    quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
-    quoteExp (lit n) = con (quote Exp.lit) (vArg (` n) ∷ [])
-    quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
-    quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) $ map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ []
+instance
+  QuotableExp : Quotable Exp
+  QuotableExp = record { ` = quoteExp }
+    where
+      quoteExp : Exp → Term
+      quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
+      quoteExp (lit n) = con (quote Exp.lit) (vArg (` n) ∷ [])
+      quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) (map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ [])
+      quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) (map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ [])
 
 stripImplicitArg : Arg Term → List (Arg Term)
 stripImplicitArgs : List (Arg Term) → List (Arg Term)
@@ -185,6 +122,7 @@ stripImplicit (lam v t) = lam v (stripImplicit t)
 stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitType t₂)
 stripImplicit (sort x) = sort x
 stripImplicit (lit l) = lit l
+stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
 stripImplicit unknown = unknown
 
 stripImplicitType (el s v) = el s (stripImplicit v)
@@ -195,7 +133,7 @@ stripImplicitArgs (a ∷ as) = stripImplicitArg a ++ stripImplicitArgs as
 
 stripImplicitArg (arg (arg-info visible r) x) = arg (arg-info visible r) (stripImplicit x) ∷ []
 stripImplicitArg (arg (arg-info hidden r) x) = []
-stripImplicitArg (arg (arg-info instance r) x) = []
+stripImplicitArg (arg (arg-info instance′ r) x) = []
 
 quoteList : List Term → Term
 quoteList []       = con (quote List.[]) []
