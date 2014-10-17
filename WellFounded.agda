@@ -51,14 +51,14 @@ example₂ n =
     λ { (greater gt) → ex (n - 100) (lemLess _ _ gt)
       ; _ → n }) n (wfNat n)
 
-{-# NO_TERMINATION_CHECK #-}
+{-# TERMINATING #-}
 reference : Nat → Nat
 reference n =
   case compare n 100 of
   λ { (greater _) → reference (n - 100)
     ; _ -> n }
 
-{-# NO_TERMINATION_CHECK #-}
+{-# TERMINATING #-}
 reference₂ : Nat → Nat
 reference₂ n =
   case lessNat 100 n of

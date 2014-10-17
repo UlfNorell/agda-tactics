@@ -12,7 +12,7 @@ OrdTm : Ord Tm
 OrdTm = OrdList
 
 OrdKTm : Ord (Nat × Tm)
-OrdKTm = OrdPair
+OrdKTm = OrdSigma
 
 _+nf_ : NF → NF → NF
 _+nf_ a b = union a b

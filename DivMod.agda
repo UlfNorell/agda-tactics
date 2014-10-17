@@ -104,4 +104,4 @@ parity : ∀ n → Either (Odd n) (Even n)
 parity n with n divmod 2
 parity n | qr q 0 lt eq = right $ dbl   q (use eq tactic assumed)
 parity n | qr q 1 lt eq = left  $ dbl+1 q (use eq tactic assumed)
-parity n | qr q (suc (suc _)) (diff _ bad) _ = 0≠1 $ use bad tactic simpl | λ ()
+parity n | qr q (suc (suc _)) (diff _ bad) _ = 0≠1 $ use bad $ tactic simpl | λ ()
