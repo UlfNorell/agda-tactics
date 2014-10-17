@@ -87,19 +87,38 @@ NEW FEATURES
 
 -- Tactic.Reflection library --
 
-  - Free variables
-
   - Substitutions
-
-  - Telescope view
 
   - Tactic.Reflection.WellScoped
 
   - Rename DeBruijn module
 
+  - Pretty printing
+
 -- Deriving --
 
-  - Constructor argument classification
+  - What to do about unnamed record constructors? No syntax for unquoting
+    record expressions. Work-around: name record constructors. This shouldn't
+    be an issue. Just need to make sure constructorOf works for records.
+    Actually it doesn't, and maybe it shouldn't. There should be another one to
+    get the constructor of a record.
+
+  - Currently conflating implicit and index/param. The problem: don't know what
+    the parameters are. Probably should add that to data type definitions.
+
+  - Mapping TypeHeads to equality functions. Need more than the head. For
+    things like List D I need to specialise list equality to D to get through
+    the termination checker.
+
+  - Use a monad to handle errors. Run the monad at the top-level and generate a
+    suitable def to trigger a nice error message.
+
+  - Figure out which cases are needed for indexed data. Currently Vec fails
+    since I'm generating the nil-cons cases.
+
+  - Performance. Seems it's pretty printing that takes time! C-c C-n on
+    derivingEq is 2.4s, but adding an unquoteDecl on it hardly affects the time
+    at all.
 
 -- Name space structure --
 
