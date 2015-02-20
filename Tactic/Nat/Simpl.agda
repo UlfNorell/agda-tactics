@@ -48,8 +48,8 @@ simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (c
 QGoal : Quotable (List (Exp × Exp))
 QGoal = QuotableList {{QuotableSigma {{QuotableB = it}}}}
 
-simpl : Term → Term
-simpl t =
+simpl : List (Arg Type) → Term → Term
+simpl _ t =
   case termToHyps t of
   λ { nothing →
       def (quote getProof)
@@ -62,8 +62,8 @@ simpl t =
                             ∷ [])
     }
 
-assumed : Term → Term
-assumed t =
+assumed : List (Arg Type) → Term → Term
+assumed _ t =
   case termToHyps t of
   λ { nothing →
       def (quote getProof)

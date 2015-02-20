@@ -9,11 +9,6 @@ open import Tactic.Nat.Exp
 open import Tactic.Nat.NF
 open import Tactic.Nat.Reflect
 
-infixr 8 _^_
-_^_ : Nat → Nat → Nat
-x ^ zero  = 1
-x ^ suc n = x ^ n * x
-
 normGoal : Term → Maybe (NF × NF)
 normGoal v = (norm *** norm) ∘ fst <$> termToExp v
 

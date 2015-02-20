@@ -27,7 +27,7 @@ infixr 1 _`->_
 infix  4 _`≡_
 
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
-pattern _`->_ a b = pi (vArg (el (lit 0) a)) (el (lit 0) b)
+pattern _`->_ a b = pi (vArg (el (lit 0) a)) (abs _ (el (lit 0) b))
 
 pattern _`+_ x y = def (quote _+_) (vArg x ∷ vArg y ∷ [])
 pattern _`*_ x y = def (quote _*_) (vArg x ∷ vArg y ∷ [])
@@ -52,9 +52,15 @@ termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
 termToExpR (lit (nat n)) = pure (lit n)
 termToExpR unknown  = fail
 termToExpR t =
-  gets (flip lookup t ∘ snd) >>=
-  λ { nothing  → fresh t
-    ; (just i) → pure (var i) }
+  -- BUG: Complains about no instance for Eq Term
+  -- gets (flip lookup t ∘ snd) >>=
+  -- λ { nothing  → fresh t
+  --   ; (just i) → pure (var i) }
+  gets snd >>= λ ts →
+  case lookup ts t of λ
+  { nothing  → fresh t
+  ; (just i) → pure (var i)
+  }
 
 private
   lower : Nat → Term → R Term
@@ -113,13 +119,15 @@ stripImplicitArg : Arg Term → List (Arg Term)
 stripImplicitArgs : List (Arg Term) → List (Arg Term)
 stripImplicitArgType : Arg Type → Arg Type
 stripImplicitType : Type → Type
+stripImplicitAbsTerm : Abs Term → Abs Term
+stripImplicitAbsType : Abs Type → Abs Type
 
 stripImplicit : Term → Term
 stripImplicit (var x args) = var x (stripImplicitArgs args)
 stripImplicit (con c args) = con c (stripImplicitArgs args)
 stripImplicit (def f args) = def f (stripImplicitArgs args)
-stripImplicit (lam v t) = lam v (stripImplicit t)
-stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitType t₂)
+stripImplicit (lam v t) = lam v (stripImplicitAbsTerm t)
+stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitAbsType t₂)
 stripImplicit (sort x) = sort x
 stripImplicit (lit l) = lit l
 stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
@@ -127,6 +135,8 @@ stripImplicit unknown = unknown
 
 stripImplicitType (el s v) = el s (stripImplicit v)
 stripImplicitArgType (arg i a) = arg i (stripImplicitType a)
+stripImplicitAbsTerm (abs x v) = abs x (stripImplicit v)
+stripImplicitAbsType (abs x a) = abs x (stripImplicitType a)
 
 stripImplicitArgs [] = []
 stripImplicitArgs (a ∷ as) = stripImplicitArg a ++ stripImplicitArgs as

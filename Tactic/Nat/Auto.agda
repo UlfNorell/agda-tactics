@@ -33,8 +33,9 @@ proof e₁ e₂ ρ with norm e₁ == norm e₂
 proof e₁ e₂ ρ    | no  _    = nothing
 proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
-auto : Term → Term
-auto t =
+-- TODO: use the context!
+auto : List (Arg Type) → Term → Term
+auto _ t =
   case termToExp t of
   λ { nothing →
       def (quote getProof)
